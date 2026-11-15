@@ -1,0 +1,497 @@
+
+PROGRAMMING IN JAVA
+ASSIGNMENT 2 – CO2
+CO2 Coverage: Strings and StringBuilder, regular expressions, the Collection Framework – List, Queue, Deque, PriorityQueue, Set and Map, the hashCode–equals contract, Generics, Comparable and Comparator, and the Collections utility class (Sessions 15–26).
+Nature of Assignment: IndividualDuration: 1 WeekTotal Marks: 50Submission Date: __________________
+Mandatory Execution and GitHub Submission
+Every student must individually execute every task in this assignment, including all “Complete the Code” programs.
+Create a GitHub repository named CSA09-<RegisterNumber>-Assignment2 and share it with the course faculty (public, or private with the faculty added as a collaborator).
+Keep one folder for each task (for example: Task01, Task02 … or Q1, Q2 …), containing the Java source code, input files and output screenshots.
+Include a README.md with your name, register number, Java version, the steps to compile and run each program, and a short note of the result of each task.
+Commit your work progressively – at least one commit for each task. The commit history will be checked; a single upload of all files on the last day will not be accepted.
+Submit the GitHub link below and on the cover page of your report. An assignment submitted without a working GitHub link will not be evaluated.
+
+GitHub Repository Link: __________________________________________________
+How to Answer the Additional Questions
+Complete the Code: Copy the given code into your repository, replace every TODO with working code without changing the rest of the program, execute it and compare your output with the expected output.
+Alternative Concept and Complexity Analysis: Describe how the solution would change if the alternative concept were used, with code or pseudocode, and analyse and compare the time complexity and space complexity of both solutions using Big-O notation, supported by your own measurements wherever possible.
+
+
+Q1 – Building Text Under Load: String, StringBuilder or StringBuffer?6 Marks
+Bloom’s Level: K4 – Analyse
+Problem Context – Railway e-Ticket Generation
+A railway reservation system generates an e-ticket for every booking. Each e-ticket is built by joining many fields – PNR, passenger names, coach, berth, fare and journey details – into a single printable text block. The current code builds the ticket using the + operator inside a loop.
+Your Challenge
+Investigate whether the choice of String, StringBuilder or StringBuffer matters for this task, or whether the difference is negligible.
+Before implementation:
+Predict how the three approaches will behave as the number of fields and tickets increases.
+Explain the reason for your prediction using String immutability and object creation.
+
+Design two deliberately contrasting workloads (for example: one short ticket, 10,000 tickets with 50 fields each) and one additional workload of your own.
+Implement the three approaches and record appropriate measures such as:
+Execution time (System.nanoTime(), averaged over repeated runs)
+Number of intermediate String objects created (estimated)
+Memory used before and after
+
+Compare your prediction with the observed behaviour.
+Design Decision
+The ticket generator will now run inside a multithreaded booking server, and several threads may append to a shared booking log. Determine which class you would recommend for the per-ticket text and which for the shared log, and defend your decision.
+Alternative Concept and Complexity Analysis
+If String.join(), StringJoiner or String.format() were used instead of StringBuilder to build each ticket, what would the solution be? Derive the time complexity of building a ticket of n fields using repeated + (O(n²) characters copied) versus StringBuilder (O(n)), and analyse the extra space created by intermediate String objects in each approach.
+Evidence Expected
+Reasoned prediction, three deliberately designed workloads, implementation of the three approaches, measured evidence, comparison of predicted and observed behaviour, and an evidence-based recommendation.
+
+Q2 – When Is ArrayList an Appropriate Engineering Choice?4 Marks
+Bloom’s Level: K4 – Analyse
+Problem Context – Music Playlist Editor
+A music-streaming app lets users build playlists. Users add songs at the end, insert songs at chosen positions, remove songs and jump directly to the k-th song. The app currently stores every playlist in an ArrayList<Song>.
+Your Challenge
+Design experiments to compare ArrayList and LinkedList for:
+Adding at the end
+Inserting and removing at the front and in the middle
+Accessing the k-th element
+Iterating through the whole list
+
+Use at least three playlist sizes. Then answer:
+Under what usage pattern is ArrayList a reasonable engineering choice, and when would you stop recommending it?
+Changed Condition
+The app adds an “Up Next” queue in which songs are frequently added at both ends and removed from the front. Re-evaluate your original recommendation and consider whether ArrayDeque is more appropriate.
+Alternative Concept and Complexity Analysis
+For each operation (add at end, insert at front, insert in the middle, get k-th, iterate), tabulate the time complexity in ArrayList, LinkedList and ArrayDeque, and the space used per element (array slot versus linked node). If the playlist were stored in a plain array with manual shifting, what would the solution be and how would its complexity compare?
+Evidence Expected
+Designed experiments for each operation, timing evidence at several sizes, an evidence-based operating boundary and a justified response to the changed condition.
+
+Q3 – Engineer the hashCode–equals Contract6 Marks
+Bloom’s Level: K4 – Analyse
+Problem Context – Event Attendance De-duplication
+A college fest records attendance by scanning student ID cards at several gates. The same student may be scanned more than once. The organisers store scans in a HashSet<Student> to keep only unique students. A junior developer has written the Student class below.
+
+
+
+class Student {
+    String regNo;  String name;
+    Student(String regNo, String name) { this.regNo = regNo; this.name = name; }
+    public boolean equals(Object o) {
+        if (!(o instanceof Student)) return false;
+        return regNo.equals(((Student) o).regNo);
+    }
+    // hashCode() is not overridden
+}
+
+Your Challenge
+Instead of simply fixing the class, investigate how the contract between equals() and hashCode() affects hash-based collections.
+Design:
+One set of scans for which the HashSet appears to work correctly.
+One set of scans deliberately designed to expose duplicate entries.
+One additional test of your own (for example: changing regNo after insertion, or a TreeSet whose compareTo() is inconsistent with equals()).
+Before executing each test, predict the size of the set and explain the reason for your prediction.
+Inquiry
+Compare your prediction with the experimental result. Explain:
+Why the duplicates appear
+How HashSet uses hashCode() and equals() to locate an element
+What happens when a field used in hashCode() is changed after the object is added
+How to correct the Student class and how to verify the correction
+
+Complete the Code
+Run the program first without completing TODO 1 and record the output. Then complete TODO 1 and execute it again.
+
+
+
+import java.util.HashSet;
+import java.util.Set;
+
+class Student {
+    private final String regNo;
+    private final String name;
+
+    Student(String regNo, String name) { this.regNo = regNo; this.name = name; }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Student)) return false;
+        return regNo.equals(((Student) o).regNo);
+    }
+
+    // TODO 1: Override hashCode() so that it is consistent with equals()
+    
+
+    @Override public String toString() { return regNo + " " + name; }
+}
+
+public class Attendance {
+    public static void main(String[] args) {
+        Set<Student> present = new HashSet<>();
+        present.add(new Student("192311001", "Arun"));    // scanned at Gate 1
+        present.add(new Student("192311002", "Divya"));
+        present.add(new Student("192311001", "Arun"));    // scanned again at Gate 3
+        System.out.println("Unique students: " + present.size());
+    }
+}
+
+Expected output:
+
+
+
+Unique students: 2
+
+Record the output before completing TODO 1 and explain the difference.
+Alternative Concept and Complexity Analysis
+If a TreeSet<Student> with a Comparator on regNo, or a HashMap<String, Student> keyed by regNo, were used instead of HashSet<Student>, what would the de-duplication solution be? Analyse the time per scan (O(1) average versus O(log n)) and the space used for n unique students in each structure.
+Evidence Expected
+Three deliberately designed tests, predictions before execution, observed set sizes, a corrected Student class and a reasoned explanation of the contract.
+
+Q4 – Choosing a Map for a Pharmacy Inventory6 Marks
+Bloom’s Level: K4 – Analyse
+Problem Context – Hospital Pharmacy Stock Lookup
+A hospital pharmacy keeps stock for each medicine, identified by a medicine code. Pharmacists look up stock by code hundreds of times a day, and every evening the system prints a report of all medicines in code order and a list of medicines in the order they were added.
+Your Challenge
+Design a Map-based solution and compare HashMap, TreeMap and LinkedHashMap. Before implementation, determine:
+The expected cost of put, get and iteration for each map
+Which map naturally produces each of the two reports
+What extra work is needed if the “wrong” map is chosen for a report
+
+Implement your solution and test it with at least three meaningfully different numbers of medicines. Record:
+Time for 100,000 lookups
+Time to produce each report
+Whether the output order matches the requirement
+
+Scalability Inquiry
+Define what you consider an acceptable response time for one lookup. Using your evidence, determine which map you would deploy and identify where the remaining cost comes from. Also explain why Hashtable is not preferred in new code.
+Alternative Concept and Complexity Analysis
+If the inventory were kept in an array of medicines sorted by code and searched with Arrays.binarySearch() instead of a Map, what would the solution be? Analyse the time complexity of lookup, insertion and producing the code-order report, and the space used, and compare them with HashMap and TreeMap.
+Evidence Expected
+Design reasoning for each map, implementation, measured evidence at several sizes, a defined acceptability criterion and a justified choice of map.
+
+Q5 – Derive a Generic Ranking Component from a Principle7 Marks
+Bloom’s Level: K4 – Analyse
+Problem Context – Inter-College Sports Leaderboard
+A sports meet ranks teams by points (higher first). Ties are broken by goal difference (higher first), then by team name (alphabetical). The same ranking component will later be reused for ranking players, colleges and quiz teams.
+Design Starting Point
+You are given only the following principle:
+A ranking is correct only if the comparison used is consistent: if A ranks above B and B ranks above C, then A must rank above C, and equal items must compare as equal.
+You are not provided with the complete design.
+Your Challenge
+Convert this principle into a reusable Java design. Determine:
+Whether Team should implement Comparable<Team>, or whether separate Comparator objects are better, and why
+How the multi-field comparison is expressed (Comparator.comparing, thenComparing, reversed)
+How a generic class such as Leaderboard<T> can be written so that it works for any rankable type (bounded types)
+Where a wildcard such as List<? extends T> is useful
+
+Develop your own design before implementation.
+Test Your Design
+Test using a data set with several ties at each level, and a second data set deliberately designed by you to break a faulty comparator (for example: one that compares points by subtraction or ignores a tie-breaker).
+Correctness Inquiry
+Explain why your comparator satisfies the principle. Your explanation should be based on reasoning about the comparison, not only on the program output.
+Complete the Code
+Complete the generic class and the comparator below and execute the program.
+
+
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+class Team {
+    final String name; final int points; final int goalDiff;
+    Team(String name, int points, int goalDiff) {
+        this.name = name; this.points = points; this.goalDiff = goalDiff;
+    }
+    @Override public String toString() {
+        return name + "(" + points + "," + goalDiff + ")";
+    }
+}
+
+class Leaderboard<T> {
+    private final List<T> items = new ArrayList<>();
+    private final Comparator<? super T> order;
+
+    Leaderboard(Comparator<? super T> order) { this.order = order; }
+
+    void add(T item) { items.add(item); }
+
+    List<T> ranking() {
+        // TODO 1: Return a new sorted copy of items using order, without modifying
+        //   items
+        
+    }
+}
+
+public class LeaderboardDemo {
+    public static void main(String[] args) {
+        // TODO 2: Build the comparator: points (high first), then goal difference (high
+        //   first), then name (A–Z)
+        
+        Leaderboard<Team> board = new Leaderboard<>(byRank);
+        board.add(new Team("Panthers", 9, 4));
+        board.add(new Team("Eagles", 9, 6));
+        board.add(new Team("Cobras", 6, 1));
+        board.add(new Team("Bisons", 9, 4));
+        System.out.println(board.ranking());
+    }
+}
+
+Expected output:
+
+
+
+[Eagles(9,6), Bisons(9,4), Panthers(9,4), Cobras(6,1)]
+
+Explain why Bisons is ranked above Panthers.
+Alternative Concept and Complexity Analysis
+You used a Comparator chain. If Team implemented Comparable<Team> instead, or if the list were sorted three times by stable sorts (name, then goal difference, then points), what would the solution be? Analyse the time complexity (number of O(n log n) sorts) and the extra space used by each approach, and state which one is easier to reuse for players and colleges.
+Evidence Expected
+A student-derived ranking design, generic class, deliberately designed test data, Collections.sort / List.sort evidence and a reasoned correctness argument.
+
+Q6 – Priority, Order and Fairness in a Queue8 Marks
+Bloom’s Level: K5 – Evaluate
+Problem Context – Hospital Emergency Triage
+Patients arriving at an emergency department are given a severity level from 1 (critical) to 5 (minor). The doctor on duty must always see the most severe patient next; among patients with the same severity, the one who arrived first must be seen first.
+Your Challenge
+Design a queue-based solution. Determine:
+Why a plain Queue (LinkedList or ArrayDeque) is not sufficient
+How a PriorityQueue with a suitable Comparator enforces the rule
+How arrival order is preserved among equal severities
+How the next patient is removed and how the waiting list is displayed
+
+Do not begin from supplied code.
+Correctness Check
+Create a small instance (about 8 patients) for which the correct order of treatment can be worked out by hand, and verify your program against it. Explain why printing the PriorityQueue directly does not show the patients in treatment order.
+Growth Investigation
+Before experimentation, predict the cost of adding a patient and of removing the next patient. Use at least three meaningful queue sizes to validate your prediction.
+Inquiry
+A severity-5 patient may wait indefinitely if severe cases keep arriving. Explain why, and design a fair rule (for example: raising the priority of patients who have waited longer than a set time).
+Deployment Decision
+Using your evidence, state whether the design can serve a city hospital receiving 5,000 patients a day, and justify your answer.
+Complete the Code
+Complete the priority queue declaration below and execute the program.
+
+
+
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
+class Patient {
+    final String name; final int severity; final long arrival;
+    Patient(String name, int severity, long arrival) {
+        this.name = name; this.severity = severity; this.arrival = arrival;
+    }
+    @Override public String toString() { return name + "(S" + severity + ")"; }
+}
+
+public class Triage {
+    private long counter = 0;
+
+    // TODO 1: Create a PriorityQueue that serves the lowest severity number first and,
+    //   for equal severity, the earliest arrival first
+    
+
+    void admit(String name, int severity) {
+        queue.add(new Patient(name, severity, counter++));
+    }
+
+    Patient next() { return queue.poll(); }
+
+    public static void main(String[] args) {
+        Triage er = new Triage();
+        er.admit("Ravi", 3); er.admit("Meena", 1); er.admit("John", 3);
+        er.admit("Asha", 5); er.admit("Kumar", 1); er.admit("Lata", 2);
+        StringBuilder order = new StringBuilder();
+        Patient p;
+        while ((p = er.next()) != null) order.append(p).append(' ');
+        System.out.println(order.toString().trim());
+    }
+}
+
+Expected output:
+
+
+
+Meena(S1) Kumar(S1) Lata(S2) Ravi(S3) John(S3) Asha(S5)
+
+Explain how the arrival counter keeps patients of equal severity in arrival order.
+Alternative Concept and Complexity Analysis
+If the triage queue were implemented as a LinkedList kept in sorted order (inserting each patient at the correct position), or as an array of five FIFO queues – one for each severity level – what would the solution be? Analyse the time complexity of admitting and of serving the next patient (O(log n), O(n) and O(1)) and the space used in each design.
+Evidence Expected
+Student-designed priority queue, hand-verified correctness check, predicted and measured costs, an explanation of starvation, a fair-rule design and an evidence-based deployment decision.
+
+DAY-4 DESIGN CHALLENGE
+Q7 – Diagnose, Redesign and Validate13 Marks
+Bloom’s Level: K5 – Evaluate
+Review the evidence you generated while working on Q1–Q6. Select ONE solution that shows a significant limitation as the data size, usage pattern or requirement changes.
+You are not permitted simply to replace one collection with another and state that it is faster. You must understand the problem first and then develop an appropriate redesign.
+A. Diagnose the Bottleneck – 2 Marks
+Using your own evidence, identify:
+Where most of the time or memory is spent
+Which operation grows significantly as the data increases
+Whether work is being unnecessarily repeated (for example: re-sorting, re-creating strings, linear searches)
+Which characteristic of the chosen class causes the limitation
+
+Evidence Expected
+A precise diagnosis supported by evidence from your original implementation.
+B. Define the Design Objective – 2 Marks
+State what your redesign must achieve, for example:
+Reduce repeated object creation
+Avoid scanning the whole collection
+Keep data in the required order without re-sorting
+Reduce memory usage
+Preserve correctness of equality and ordering
+
+Specify a measurable objective wherever possible.
+Evidence Expected
+A clearly stated redesign objective derived directly from the identified limitation.
+C. Design the Revised Solution – 4 Marks
+Develop a revised solution and explain:
+What you have changed
+Which property of the new class or structure you exploit
+Which operations are avoided or reduced
+Whether additional memory or preprocessing is required
+Any new trade-offs created
+
+Provide an appropriate design representation (class diagram or pseudocode). Marks are based on the quality of the reasoning, not on naming a known class.
+Evidence Expected
+A coherent redesign directly addressing the diagnosed bottleneck, with justification.
+D. Predict Before Implementing – 1 Mark
+Predict how the behaviour of the redesigned solution should differ, and the measure in which you expect improvement.
+Evidence Expected
+A clear, testable prediction made before experimental validation.
+E. Implement and Validate the Redesign – 2 Marks
+Implement the redesign and compare Original Solution → Redesigned Solution using the same test conditions and suitable measures (time, operations, objects created, memory).
+Evidence Expected
+Comparable experimental evidence for the original and redesigned solutions.
+F. Defend the Final Design – 2 Marks
+Evaluate whether the redesign achieved its objective. Discuss:
+Whether the prediction was supported
+The magnitude of improvement, if any
+New costs or trade-offs
+Situations in which the original solution may still be preferable
+
+A redesign that does not outperform the original will not automatically be considered unsuccessful if you correctly analyse and explain why.
+Evidence Expected
+A critical, evidence-based evaluation and a defensible final engineering conclusion.
+
+MARK DISTRIBUTION
+
+
+
+Question
+
+
+Assessed Area
+
+
+Bloom’s Level
+
+
+Marks
+
+
+Q1
+
+
+String, StringBuilder & StringBuffer
+
+
+K4 – Analyse
+
+
+6
+
+
+Q2
+
+
+ArrayList, LinkedList & ArrayDeque
+
+
+K4 – Analyse
+
+
+4
+
+
+Q3
+
+
+HashSet & the hashCode–equals contract
+
+
+K4 – Analyse
+
+
+6
+
+
+Q4
+
+
+HashMap, TreeMap & LinkedHashMap
+
+
+K4 – Analyse
+
+
+6
+
+
+Q5
+
+
+Generics, Comparable & Comparator
+
+
+K4 – Analyse
+
+
+7
+
+
+Q6
+
+
+Queue & PriorityQueue
+
+
+K5 – Evaluate
+
+
+8
+
+
+Q7
+
+
+Day-4 Design Challenge – Diagnose, Redesign & Validate
+
+
+K5 – Evaluate
+
+
+13
+
+
+
+
+
+TOTAL
+
+
+
+
+
+50
+
+Submission Requirements
+GitHub repository link (mandatory) containing the executed code for every task, including every completed “Complete the Code” program, with input files, output screenshots and a README.md.
+Submit:
+Your assignment report containing the required evidence for Q1–Q7
+Java source code for all implemented solutions
+Raw experimental data used to produce your results
+Tables/graphs used in your analysis, where applicable
+
+Repeated, averaged measurements and operation counts should be treated as the primary experimental evidence. A single execution time or a screenshot of output is not sufficient.
+Assessment Verification
+Students may be asked to explain any part of their design, source code, test data, experimental results, predictions, analysis or Design Challenge during a brief verification discussion/viva. The student should therefore be able to explain and defend the evidence submitted as their own work.
+Overall Assessment Expectation
+This assignment does not primarily assess your ability to use Java collections. It assesses your ability to:
+Predict → Design → Implement → Measure → Analyse → Evaluate → Diagnose → Redesign → Validate
+Your conclusions and design decisions must be supported by your own reasoning and experimental evidence.
