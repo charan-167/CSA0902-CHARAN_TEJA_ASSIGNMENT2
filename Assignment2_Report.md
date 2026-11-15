@@ -4,7 +4,7 @@
 **Course:** CSA09 – Programming in Java  
 **Student Name:** K V Charan Teja  
 **Register Number:** 192424167  
-**GitHub Repository:** [https://github.com/charan-167/CSA09-192424167-Assignment2](https://github.com/charan-167/CSA09-192424167-Assignment2)  
+**GitHub Repository:** [https://github.com/charan-167/CSA0902-CHARAN_TEJA_ASSIGNMENT2](https://github.com/charan-167/CSA0902-CHARAN_TEJA_ASSIGNMENT2)  
 **Execution Environment:** OpenJDK 17.0.21.0.2 LTS, 64-Bit Server VM, Windows 11  
 **Total Marks:** 50  
 

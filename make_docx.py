@@ -131,7 +131,7 @@ meta_rows = [
     ["Student Name", "K V Charan Teja"],
     ["Register Number", "192424167"],
     ["Course Code / Class", "CSA09 – Programming in Java"],
-    ["GitHub Repository Link", "https://github.com/charan-167/CSA09-192424167-Assignment2"],
+    ["GitHub Repository Link", "https://github.com/charan-167/CSA0902-CHARAN_TEJA_ASSIGNMENT2"],
     ["Execution Platform", "OpenJDK 17.0.21.0.2 LTS, 64-Bit Server VM, Windows 11"],
     ["CO2 Coverage", "Strings, StringBuilder, Regex, Collection Framework, Generics, Comparators (Sessions 15–26)"],
     ["Total Marks / Duration", "50 Marks / 1 Week"]
